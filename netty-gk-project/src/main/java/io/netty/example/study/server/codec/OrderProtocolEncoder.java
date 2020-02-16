@@ -14,7 +14,7 @@ import java.util.List;
  * @Description:
  */
 
-
+@Slf4j
 public class OrderProtocolEncoder extends MessageToMessageEncoder<ResponseMessage> {
 
     @Override
@@ -22,7 +22,7 @@ public class OrderProtocolEncoder extends MessageToMessageEncoder<ResponseMessag
 
         ByteBuf byteBuf = ctx.alloc().buffer();
         responseMessage.encode(byteBuf);
-        System.out.println("encoding " + byteBuf);
+        log.info("encoding " + byteBuf);
         out.add(byteBuf);
     }
 }

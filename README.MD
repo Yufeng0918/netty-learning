@@ -1676,3 +1676,5 @@ jmxReporter.start();
 	+ allocate buff: DefaultResourceLeak add to List
 	+ release buff: DefaultResourceLeak removed from List
 	+ WeakReference add to ReferenceQueue to compare
+	+ io.netty.util.ResourceLeakDetector.Leavl=PARANOID
+	+ only detect after GC
