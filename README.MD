@@ -1501,6 +1501,8 @@ selectionKey.cancel()
 - [bossGroup|workerGroup].shutdownGracefully()
 - verify State is close [Begin Loop]
 	+ close all channel
+		+ bossGroup close NioServerSocketChannel
+		+ workerGroup close NioSocketChannel
 	+ execute task/hooks
 		+ verify if exceed gracefulShutdownTimeout
 			+ exit application if exceed timeout
@@ -1508,3 +1510,52 @@ selectionKey.cancel()
 		+ verify if exceed gracefulShutdownQuietPeriod
 			+ exit application if exceed timeout
 			+ if task/hooks executed in quiet period to start loop again
+
+```
+1. NioEventLoop to close channel
+ch.unsafe().close() in loop
+
+2. Execute closeTask/Hook
+- selector.close()
+
+3. confiremShutdown
+compare lastExecutionTime to gracefulShutdownQuietPeriod
+
+```
+
+
+## Network Application Go Live
+#### Transport Protocol
+- Define data structure and encoding/decoding
+	+ data encoding/decoding
+	+ data compression
+	+ sticky pack and half pack
+#### Client/Server
+	+ client
+	+ server
+#### Code Review
+- Best Pratice in Netty
+- Known issue in Netty
+- Learn from other project using Netty
+- Diagnose & Measurement
+#### Online Feedback
+- error collection
+- performance collection
+***
+
+
+## Online Order Project
+#### Operation
+- Auth
+	+ AuthOperation
+	+ AuthOperationResult
+- Order
+	+ OrderOperation
+	+ OrderOperationResult
+- Keeplive
+	+ KeepliveOperation
+	+ KeepliveOperationResult
+#### Data Structure
+- MessasgeHeader: length, version, opCode, streamId
+	+ opCode: indicate different operation
+- MessageBody: JSON

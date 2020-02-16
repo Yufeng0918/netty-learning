@@ -1,4 +1,5 @@
 rootProject.name = 'netty-learning'
 include 'netty-zl'
 include 'netty-gk-example'
+include 'netty-gk-project'
 
