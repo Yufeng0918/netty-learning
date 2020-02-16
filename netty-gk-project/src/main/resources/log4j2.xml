@@ -9,8 +9,8 @@
         <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
             <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
-        <RollingFile name="FileAppender" fileName="./logs/qt-admin.log"
-                     filePattern="./logs/qt-admin-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="false">
+        <RollingFile name="FileAppender" fileName="./logs/netty-gk-project.log"
+                     filePattern="./logs/netty-gk-project-%d{yyyy-MM-dd}-%i.log.gz" ignoreExceptions="false">
             <PatternLayout>
                 <Pattern>${LOG_PATTERN}</Pattern>
             </PatternLayout>
@@ -22,11 +22,11 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root level="debug">
             <AppenderRef ref="ConsoleAppender"/>
             <AppenderRef ref="FileAppender"/>
         </Root>
-        <AsyncLogger name="com.qt.admin" level="info" additivity="false">
+        <AsyncLogger level="debug" additivity="false">
             <AppenderRef ref="ConsoleAppender"/>
             <AppenderRef ref="FileAppender"/>
         </AsyncLogger>

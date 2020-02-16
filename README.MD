@@ -1645,3 +1645,34 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 #### Naming Conversion
 - threadPool: NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
 - handler: pipeline.addLast("debegLog", debugLogHandler);
+
+#### Data Visible
+- External
+	+ channelActive/channelInactive
+	+ channelRead
+	+ exceptionCaught
+- Internal
+	+ thread number
+	+ exeuctor.pendingTasks()
+	+ channelOutboundBuffer.totalPendingSize
+	+ userEventTrigger for IdleStateEvent
+	
+```
+MetricRegistry metricRegistry = new MetricRegistry();
+        metricRegistry.register("totalConnectionCount", (Gauge<Long>)() -> totalConnectionCount.longValue());
+
+ConsoleReporter consoleReporter = ConsoleReporter.forRegistry(metricRegistry).build();
+consoleReporter.start(5, TimeUnit.SECONDS);
+
+JmxReporter jmxReporter = JmxReporter.forRegistry(metricRegistry).build();
+jmxReporter.start();
+```
+
+#### Memory Leak
+- Forget release buff
+	+ off heap: PlatformDependent.freeDirectBuffer(buff) 
+	+ pool: recyclerHandler.recycle(buff)
+- ResourceLeakDetector
+	+ allocate buff: DefaultResourceLeak add to List
+	+ release buff: DefaultResourceLeak removed from List
+	+ WeakReference add to ReferenceQueue to compare

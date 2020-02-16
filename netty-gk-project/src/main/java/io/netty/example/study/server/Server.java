@@ -12,6 +12,7 @@ import io.netty.example.study.server.codec.OrderFrameDecoder;
 import io.netty.example.study.server.codec.OrderFrameEncoder;
 import io.netty.example.study.server.codec.OrderProtocolDecoder;
 import io.netty.example.study.server.codec.OrderProtocolEncoder;
+import io.netty.example.study.server.codec.handler.MetricHandler;
 import io.netty.example.study.server.codec.handler.OrderServerProcessHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -40,7 +41,7 @@ public class Server {
 
         LoggingHandler debugLogHandler = new LoggingHandler(LogLevel.DEBUG);
         LoggingHandler infoLogHandler = new LoggingHandler(LogLevel.INFO);
-
+        MetricHandler metricHandler = new MetricHandler();
 
         serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
             @Override
@@ -51,6 +52,7 @@ public class Server {
                 pipeline.addLast("frameEncoder", new OrderFrameEncoder());
                 pipeline.addLast("protocolDecoder", new OrderProtocolDecoder());
                 pipeline.addLast("protocolEncoder", new OrderProtocolEncoder());
+                pipeline.addLast("metricHandler", metricHandler);
                 pipeline.addLast("infoLog", infoLogHandler);
                 pipeline.addLast("orderHandler", new OrderServerProcessHandler());
             }
