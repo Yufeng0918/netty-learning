@@ -15,6 +15,7 @@ import io.netty.example.study.server.codec.OrderProtocolEncoder;
 import io.netty.example.study.server.codec.handler.OrderServerProcessHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.util.concurrent.ExecutionException;
 
@@ -27,8 +28,8 @@ public class Server {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException {
 
-        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
+        NioEventLoopGroup workerGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("worker"));
 
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.channel(NioServerSocketChannel.class);
@@ -46,12 +47,12 @@ public class Server {
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addLast("debegLog", debugLogHandler);
-                pipeline.addLast( new OrderFrameDecoder());
-                pipeline.addLast(new OrderFrameEncoder());
-                pipeline.addLast(new OrderProtocolDecoder());
-                pipeline.addLast(new OrderProtocolEncoder());
-                pipeline.addLast(infoLogHandler);
-                pipeline.addLast(new OrderServerProcessHandler());
+                pipeline.addLast("frameDecoder", new OrderFrameDecoder());
+                pipeline.addLast("frameEncoder", new OrderFrameEncoder());
+                pipeline.addLast("protocolDecoder", new OrderProtocolDecoder());
+                pipeline.addLast("protocolEncoder", new OrderProtocolEncoder());
+                pipeline.addLast("infoLog", infoLogHandler);
+                pipeline.addLast("orderHandler", new OrderServerProcessHandler());
             }
         });
 

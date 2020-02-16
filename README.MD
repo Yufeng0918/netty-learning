@@ -1263,10 +1263,12 @@ public class HeartBeatServerChannelHandler extends ChannelInboundHandlerAdapter 
 - atomic: execute all or none
 - visible: visible change to others
 - orderable: execution sequence
+
 #### Lock Category
 - Permisitic, Optimitic
 - Fair, Unfaire
 - Shared, Exclusive
+
 #### Netty Concurrency
 - Synchronized block: minimum the sync scope
 - Volatile primary type + Static AtomicFieldUpdater
@@ -1278,6 +1280,7 @@ public class HeartBeatServerChannelHandler extends ChannelInboundHandlerAdapter 
 	+ LinkedBlockingQueue: multi producer, mutli consumer
 	+ MpscChunkedArrayQueue: multi producer, single consumer
 - ThreadLocal
+
 #### Applicated Scenario
 - overall parallel + part serialize = one queue + multithread
 - avoid the context switch
@@ -1524,27 +1527,30 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 ```
 
 
-## Network Application Go Live
+## Network Application Factors
 #### Transport Protocol
 - Define data structure and encoding/decoding
 	+ data encoding/decoding
 	+ data compression
 	+ sticky pack and half pack
+
 #### Client/Server
-	+ client
-	+ server
++ client
++ server
+
 #### Code Review
 - Best Pratice in Netty
 - Known issue in Netty
 - Learn from other project using Netty
 - Diagnose & Measurement
+
 #### Online Feedback
 - error collection
 - performance collection
 ***
 
 
-## Online Order Project
+## Order Project Go Live!
 #### Operation
 - Auth
 	+ AuthOperation
@@ -1555,6 +1561,7 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 - Keeplive
 	+ KeepliveOperation
 	+ KeepliveOperationResult
+
 #### Data Structure
 - Message
 	- MessasgeHeader: 
@@ -1572,7 +1579,8 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 		+ decode ByteBuf to MessageHeader and MessageBody
 	- encode
 		+ encode MesssageHeader and MessageBody to ByteBuf 
-#### Server Handler Layers
+
+#### Server Layers
 - Inbound
 	- FrameDecoder extends LengthFieldBasedFrameDecoder
 		+ convert TCP stream data to expected ByteBuf
@@ -1587,11 +1595,13 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 		+ convert ResponseMessage to ByteBuf
 	- FrameEncoder extends LengthFieldPrepender
 		+ set lenghtFieldLength
-#### Client
+
+#### Client Layers
 - add Handler to convert Operation to RequestMessage
 - Dispatchd Response
 	+ send request: save [requestId, Future] into ResponseDispatcherHandler's requestPendingCentor
 	+ receive response: save result into  ResponseDispatcherHandler's requestPendingCentor's Future 
+
 #### Beware
 - set initialBytesToStrip in Decoder to strip the lengthField
 - handler sequence
@@ -1603,6 +1613,7 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 	+ ctx.alloc().buff() is recommended
 - SimpleInboundHandler to auto release buffer
 - ctx.writeAndFlush() to flush data from current pipeline
+
 #### Parameter Adjustment
 - Linux
 	- "ulimit -n 60000" to adjust open maxium number of file
@@ -1630,3 +1641,7 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
  		+ SO_RCVBUF: use for accept
  		+ SO_REUSEADDR
  		+ SO_BACKLOG: size of waiting queue, e.g. bind(address< config.getBacklog()), set to 1024
+
+#### Naming Conversion
+- threadPool: NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
+- handler: pipeline.addLast("debegLog", debugLogHandler);
