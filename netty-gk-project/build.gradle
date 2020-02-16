@@ -14,16 +14,16 @@ repositories {
 dependencies {
 
     compile (
-            'io.netty:netty-all:4.1.15.Final',
-            'org.projectlombok:lombok:1.16.18',
+            'io.netty:netty-all:4.1.39.Final',
             'com.google.code.gson:gson:2.8.5',
-            'com.google.guava:guava:19.0',
-            'org.slf4j:slf4j-api:1.7.10',
-            'org.slf4j:slf4j-log4j12:1.7.10'
-
+            'org.slf4j:slf4j-log4j12:1.7.22',
+            'com.google.guava:guava:19.0'
     )
+
+    compileOnly 'org.projectlombok:lombok:1.16.18'
+    annotationProcessor 'org.projectlombok:lombok:1.16.18'
+
     testCompile (
             'junit:junit:4.11'
     )
-    testCompile group: 'junit', name: 'junit', version: '4.12'
 }

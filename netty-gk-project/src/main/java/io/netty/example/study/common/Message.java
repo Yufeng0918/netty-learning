@@ -25,10 +25,10 @@ public abstract class Message<T extends MessageBody> {
 
     public abstract Class<T> getMessageBodyDecodeClass(int opcode);
 
-    public void decode(ByteBuf msg) {
-        int version = msg.readInt();
-        long streamId = msg.readLong();
-        int opCode = msg.readInt();
+    public void decode(ByteBuf byteBuf) {
+        int version = byteBuf.readInt();
+        long streamId = byteBuf.readLong();
+        int opCode = byteBuf.readInt();
 
         MessageHeader messageHeader = new MessageHeader();
         messageHeader.setVersion(version);
@@ -37,7 +37,7 @@ public abstract class Message<T extends MessageBody> {
         this.messageHeader = messageHeader;
 
         Class<T> bodyClazz = getMessageBodyDecodeClass(opCode);
-        T body = JsonUtil.fromJson(msg.toString(Charset.forName("UTF-8")), bodyClazz);
+        T body = JsonUtil.fromJson(byteBuf.toString(Charset.forName("UTF-8")), bodyClazz);
         this.messageBody = body;
     }
 

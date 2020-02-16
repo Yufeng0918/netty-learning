@@ -1556,6 +1556,39 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 	+ KeepliveOperation
 	+ KeepliveOperationResult
 #### Data Structure
-- MessasgeHeader: length, version, opCode, streamId
-	+ opCode: indicate different operation
-- MessageBody: JSON
+- Message
+	- MessasgeHeader: 
+		+ length
+		+ version
+		+ streamId
+		+ opCode: indicate different operation
+	- MessageBody
+		+ RequestMessage inherit MessageBody
+			+ request attributes
+			+ execute() to return response
+		+ ResponseMessage inherit MessageBody
+			+ response attributes
+	- decode
+		+ decode ByteBuf to MessageHeader and MessageBody
+	- encode
+		+ encode MesssageHeader and MessageBody to ByteBuf 
+#### Server Handler Layers
+- Inbound
+	- FrameDecoder extends LengthFieldBasedFrameDecoder
+		+ convert TCP stream data to expected ByteBuf
+		+ set lengthFieldLength, lengthFieldOffset, lengthAdjustment, initialBytesToStrip
+	- ProtocalDecoder extends MessageToMessageDecoder<ByteBuf>
+		+ covert ByteBuf to java object
+	- BusinessLayerHandler extends SimpleChannelInboundHandler<RequestMessage>
+		+ handler bussiness logic
+		+ writeFlush ResponseMessage
+- Outbound
+	- ProtocalEncoder extends MessageToMessageEncoder<ResponseMessage>
+		+ convert ResponseMessage to ByteBuf
+	- FrameEncoder extends LengthFieldPrepender
+		+ set lenghtFieldLength
+#### Client
+- add Handler to convert Operation to RequestMessage
+- Dispatchd Response
+	+ 
+ 
