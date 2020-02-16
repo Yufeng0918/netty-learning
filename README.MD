@@ -1591,5 +1591,42 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 - add Handler to convert Operation to RequestMessage
 - Dispatchd Response
 	+ send request: save [requestId, Future] into ResponseDispatcherHandler's requestPendingCentor
-	+ receive response: save result into  ResponseDispatcherHandler's requestPendingCentor's Future
- 
+	+ receive response: save result into  ResponseDispatcherHandler's requestPendingCentor's Future 
+#### Beware
+- set initialBytesToStrip in Decoder to strip the lengthField
+- handler sequence
+	+ handle stream data to ByteBuf
+	+ handle ByteBuf to java object
+- sharable Handler: share with pipeline
+- exclusive Handler: not share
+- BufferAllocation
+	+ ctx.alloc().buff() is recommended
+- SimpleInboundHandler to auto release buffer
+- ctx.writeAndFlush() to flush data from current pipeline
+#### Parameter Adjustment
+- Linux
+	- "ulimit -n 60000" to adjust open maxium number of file
+- System
+	- "-Dio.netty.param"
+	- io.netty.eventLoopThreads: availableProcess * 2
+	- io.netty.availableProcessors: run in docker or VM
+	- io.netty.allocator.type: unpooled or pooled
+	- io.netty.noPreferDirect: heap or off-heap
+	- io.netty.leakDetection.level: default is SIMPLE
+- Netty
+	- SocketChannel
+		+ SO_SNDBUF: send buf, linux dynamic adjust
+		+ SO_RCVBUF: receive buff, linux dynamic adjust
+ 		+ SO_KEEPLIVE
+ 		+ SO_REUSEADDR: reuse address
+ 		+ SO_LINGER: delay close socket
+ 		+ IP_TOS: ip packet priority
+ 		+ TCP_NODELAY: merge small tcp packet to send, set to True
+ 		+ WRITE_BUFFER_WATER_MARK: protect from OOM
+ 		+ CONNECT_TIMEOUT_MILLIS: connection timeout, e.g. 30s
+ 		+ ALLOCATOR: allocate memory from place
+ 		+ RCVBU_ALLOCATOR: allocate how much space
+ 	- ServerSocketChannel
+ 		+ SO_RCVBUF: use for accept
+ 		+ SO_REUSEADDR
+ 		+ SO_BACKLOG: size of waiting queue, e.g. bind(address< config.getBacklog()), set to 1024
