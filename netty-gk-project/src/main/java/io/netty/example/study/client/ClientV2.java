@@ -10,6 +10,7 @@ import io.netty.example.study.client.codec.*;
 import io.netty.example.study.client.codec.dispatcher.OperationResultFuture;
 import io.netty.example.study.client.codec.dispatcher.RequestPendingCentor;
 import io.netty.example.study.client.codec.dispatcher.ResponseDispatcherHandler;
+import io.netty.example.study.common.Operation;
 import io.netty.example.study.common.OperationResult;
 import io.netty.example.study.common.RequestMessage;
 import io.netty.example.study.common.order.OrderOperation;
@@ -17,7 +18,11 @@ import io.netty.example.study.util.IdUtil;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @Auther: daiyu
@@ -26,7 +31,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class ClientV2 {
 
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
 
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -53,14 +58,18 @@ public class ClientV2 {
         future.sync();
 
         OperationResultFuture operationResultFuture = new OperationResultFuture();
+        System.out.println(operationResultFuture.toString());
         Long stremId = IdUtil.nextId();
         requestPendingCentor.add(stremId, operationResultFuture);
+
+        Map<Long, OperationResultFuture> resultFutureMap = new HashMap<>();
+        resultFutureMap.put(stremId, operationResultFuture);
         RequestMessage requestMessage =  new RequestMessage(stremId, new OrderOperation(100, "Pomato"));
         future.channel().writeAndFlush(requestMessage);
 
-        OperationResult operationResult = operationResultFuture.get();
-        System.out.println(operationResult);
-
+        operationResultFuture = resultFutureMap.get(stremId);
+        resultFutureMap.remove(stremId);
+        System.out.println(operationResultFuture.get());
         future.channel().closeFuture().get();
     }
 }

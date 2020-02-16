@@ -20,5 +20,6 @@ public class ResponseDispatcherHandler extends SimpleChannelInboundHandler<Respo
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ResponseMessage msg) throws Exception {
         requestPendingCentor.set(msg.getMessageHeader().getStreamId(), msg.getMessageBody());
+
     }
 }

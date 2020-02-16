@@ -1590,5 +1590,6 @@ compare lastExecutionTime to gracefulShutdownQuietPeriod
 #### Client
 - add Handler to convert Operation to RequestMessage
 - Dispatchd Response
-	+ 
+	+ send request: save [requestId, Future] into ResponseDispatcherHandler's requestPendingCentor
+	+ receive response: save result into  ResponseDispatcherHandler's requestPendingCentor's Future
  

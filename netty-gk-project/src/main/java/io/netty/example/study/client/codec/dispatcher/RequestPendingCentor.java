@@ -26,4 +26,13 @@ public class RequestPendingCentor {
             this.map.remove(streamId);
         }
     }
+
+    public OperationResultFuture take(Long streamId) {
+        if (this.map.containsKey(streamId)) {
+            OperationResultFuture operationResultFuture =  this.map.get(streamId);
+            this.map.remove(streamId);
+            return operationResultFuture;
+        }
+        return null;
+    }
 }
