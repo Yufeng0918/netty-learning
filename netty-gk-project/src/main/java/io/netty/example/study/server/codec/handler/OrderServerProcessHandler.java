@@ -1,5 +1,6 @@
 package io.netty.example.study.server.codec.handler;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.example.study.common.Operation;
@@ -7,6 +8,8 @@ import io.netty.example.study.common.OperationResult;
 import io.netty.example.study.common.RequestMessage;
 import io.netty.example.study.common.ResponseMessage;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Auther: daiyu
@@ -21,10 +24,17 @@ public class OrderServerProcessHandler extends SimpleChannelInboundHandler<Reque
         Operation operation = requestMessage.getMessageBody();
         OperationResult operationResult = operation.execute();
 
+        Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
         ResponseMessage responseMessage = new ResponseMessage();
         responseMessage.setMessageHeader(requestMessage.getMessageHeader());
         responseMessage.setMessageBody(operationResult);
 
-        ctx.writeAndFlush(responseMessage);
+        ctx.write(responseMessage);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        super.channelReadComplete(ctx);
+        ctx.flush();
     }
 }

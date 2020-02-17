@@ -1678,3 +1678,42 @@ jmxReporter.start();
 	+ WeakReference add to ReferenceQueue to compare
 	+ io.netty.util.ResourceLeakDetector.Leavl=PARANOID
 	+ only detect after GC
+
+#### Annotation
+- @Sharable: share by pipeline
+- @Skip: skip handler
+- @UnstableApi: not recommend to use
+
+#### Optimize Model
+- CPU bound: Runtime.getRuntime().availableProcessors() * 2
+- IO bound
+	+ independent IO thread pool
+		+ JDK Executors
+		+ EventExecutorGroup
+
+```
+UnorderedThreadPoolEventExecutor business = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("business"));
+
+serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
+    @Override
+    protected void initChannel(NioSocketChannel ch) throws Exception {
+        ChannelPipeline pipeline = ch.pipeline();
+        pipeline.addLast(business, "orderHandler", new OrderServerProcessHandler());
+    }
+});
+```
+#### Increase Thoughput
+- flush data in channelReadComplete() method
+	+ not suitable for async
+	+ only flush at end or 16 times read
+- flushConsolidationHandler
+	+ pipeline.addLast("flushEnhance", new FlushConsolidationHandler(5, true));
+	+ incease delay, increase througput
+ 
+#### Tranffic Sharping
+- checkInterval to adjust, writeLimit/readLimit set to 0 to turn off
+- GlobalTrafficShapingHandler: shared
+	+ writeGlobalLimit, writeChannlLimit
+	+ readGlobalLimit, readChannlLimit
+- ChannelTrafficShapingHandler 
+- GlobalChannelTrafficShapingHandler: shared
