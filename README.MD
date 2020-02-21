@@ -1717,3 +1717,15 @@ serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
 	+ readGlobalLimit, readChannlLimit
 - ChannelTrafficShapingHandler 
 - GlobalChannelTrafficShapingHandler: shared
+
+#### Netty OOM
+- ChannelOutboundBuffer
+	+ compare totalPendingSize to writeBufferWaterMark.high()
+	+ writeBufferWaterMark.high() to 32k - 64k
+- TranfficShapingHandler
+	+ compare queueSize to maxWriteSize
+	+ compare delay to maxWriteDelay
+	+ maxWrite: 4M, channel
+	+ maxGlobalWriteSize: 400M
+	+ maxWriteDelay: 4s
+- Check channel is writable

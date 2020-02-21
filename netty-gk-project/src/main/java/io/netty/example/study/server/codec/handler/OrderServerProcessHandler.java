@@ -29,7 +29,11 @@ public class OrderServerProcessHandler extends SimpleChannelInboundHandler<Reque
         responseMessage.setMessageHeader(requestMessage.getMessageHeader());
         responseMessage.setMessageBody(operationResult);
 
-        ctx.write(responseMessage);
+        if (ctx.channel().isWritable() && ctx.channel().isActive()) {
+            ctx.write(responseMessage);
+        } else {
+            log.error("drop message: " + requestMessage.toString());
+        }
     }
 
     @Override
