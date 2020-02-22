@@ -1739,3 +1739,34 @@ serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
 
 #### RuleBasedIpFilter
 - IpSubnetFilterRule: check the cidrPrefix
+
+#### AuthHandler
+- auth the operation and remove it self after done
+
+```
+protected void channelRead0(ChannelHandlerContext ctx, RequestMessage msg) throws Exception {
+	
+	try {
+	    Operation operation = msg.getMessageBody();
+	    if (operation instanceof AuthOperation) {
+	        AuthOperation authOperation = AuthOperation.class.cast(operation);
+	        AuthOperationResult authOperationResult = authOperation.execute();
+	        if (authOperationResult.isPassAuth()) {
+	            log.info("pass auth");
+	        } else {
+	            log.error("failed to auth");
+	            ctx.close();
+	        }
+	    } else {
+	        log.info("expect first msg is auth");
+	        ctx.close();
+	    }
+	} catch (Exception e) {
+	    ctx.close();
+	    log.error(e.getLocalizedMessage());
+	} finally {
+	    ctx.pipeline().remove(this);
+	}
+}
+
+```

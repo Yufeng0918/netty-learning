@@ -14,6 +14,7 @@ import io.netty.example.study.client.codec.OrderProtocalEncoder;
 import io.netty.example.study.client.codec.dispatcher.ClientIdleCheckHandler;
 import io.netty.example.study.client.codec.dispatcher.KeepLiveHandler;
 import io.netty.example.study.common.RequestMessage;
+import io.netty.example.study.common.auth.AuthOperation;
 import io.netty.example.study.common.order.OrderOperation;
 import io.netty.example.study.util.IdUtil;
 import io.netty.handler.logging.LogLevel;
@@ -57,7 +58,11 @@ public class Client {
         ChannelFuture future = bootstrap.connect("127.0.0.1", 8090);
         future.sync();
 
-        RequestMessage requestMessage =  new RequestMessage(IdUtil.nextId(), new OrderOperation(100, "Pomato"));
+
+        RequestMessage requestMessage =  new RequestMessage(IdUtil.nextId(), new AuthOperation("admin", "password"));
+        future.channel().writeAndFlush(requestMessage);
+
+        requestMessage =  new RequestMessage(IdUtil.nextId(), new OrderOperation(100, "Pomato"));
         future.channel().writeAndFlush(requestMessage);
         future.channel().closeFuture().get();
     }

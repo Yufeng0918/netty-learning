@@ -12,6 +12,7 @@ import io.netty.example.study.server.codec.OrderFrameDecoder;
 import io.netty.example.study.server.codec.OrderFrameEncoder;
 import io.netty.example.study.server.codec.OrderProtocolDecoder;
 import io.netty.example.study.server.codec.OrderProtocolEncoder;
+import io.netty.example.study.server.codec.handler.AuthHandler;
 import io.netty.example.study.server.codec.handler.MetricHandler;
 import io.netty.example.study.server.codec.handler.OrderServerProcessHandler;
 import io.netty.example.study.server.codec.handler.ServerIdleCheckHandler;
@@ -52,6 +53,7 @@ public class Server {
         UnorderedThreadPoolEventExecutor business = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("buss"));
         GlobalTrafficShapingHandler trafficShapingHandler = new GlobalTrafficShapingHandler(new NioEventLoopGroup(), 100L * 1024L * 1024L, 100L * 1024L * 1024L);
         IpSubnetFilterRule ipSubnetFilterRule = new IpSubnetFilterRule("127.1.0.1", 16, IpFilterRuleType.REJECT);
+        AuthHandler authHandler = new AuthHandler();
 
         serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
             @Override
@@ -66,6 +68,7 @@ public class Server {
                 pipeline.addLast("protocolDecoder", new OrderProtocolDecoder());
                 pipeline.addLast("protocolEncoder", new OrderProtocolEncoder());
                 pipeline.addLast("metricHandler", metricHandler);
+                pipeline.addLast("auth", authHandler);
                 pipeline.addLast("infoLog", infoLogHandler);
                 pipeline.addLast("flushEnhance", new FlushConsolidationHandler(5, true));
                 pipeline.addLast(business, "orderServer", new OrderServerProcessHandler());
