@@ -8,6 +8,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.example.study.client.codec.*;
+import io.netty.example.study.client.codec.dispatcher.ClientIdleCheckHandler;
 import io.netty.example.study.client.codec.dispatcher.OperationResultFuture;
 import io.netty.example.study.client.codec.dispatcher.RequestPendingCentor;
 import io.netty.example.study.client.codec.dispatcher.ResponseDispatcherHandler;
@@ -46,6 +47,7 @@ public class ClientV2 {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
+
                 pipeline.addLast(new OrderFrameDecoder());
                 pipeline.addLast(new OrderFrameEncoder());
                 pipeline.addLast(new OrderProtocalDecoder());

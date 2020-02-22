@@ -14,7 +14,11 @@ import io.netty.example.study.server.codec.OrderProtocolDecoder;
 import io.netty.example.study.server.codec.OrderProtocolEncoder;
 import io.netty.example.study.server.codec.handler.MetricHandler;
 import io.netty.example.study.server.codec.handler.OrderServerProcessHandler;
+import io.netty.example.study.server.codec.handler.ServerIdleCheckHandler;
 import io.netty.handler.flush.FlushConsolidationHandler;
+import io.netty.handler.ipfilter.IpFilterRuleType;
+import io.netty.handler.ipfilter.IpSubnetFilterRule;
+import io.netty.handler.ipfilter.RuleBasedIpFilter;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
@@ -47,14 +51,16 @@ public class Server {
         MetricHandler metricHandler = new MetricHandler();
         UnorderedThreadPoolEventExecutor business = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("buss"));
         GlobalTrafficShapingHandler trafficShapingHandler = new GlobalTrafficShapingHandler(new NioEventLoopGroup(), 100L * 1024L * 1024L, 100L * 1024L * 1024L);
-
+        IpSubnetFilterRule ipSubnetFilterRule = new IpSubnetFilterRule("127.1.0.1", 16, IpFilterRuleType.REJECT);
 
         serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addLast("debegLog", debugLogHandler);
+                pipeline.addLast("ipFilter", new RuleBasedIpFilter(ipSubnetFilterRule));
                 pipeline.addLast("trafficSharper", trafficShapingHandler);
+                pipeline.addLast("idleCheck", new ServerIdleCheckHandler());
                 pipeline.addLast("frameDecoder", new OrderFrameDecoder());
                 pipeline.addLast("frameEncoder", new OrderFrameEncoder());
                 pipeline.addLast("protocolDecoder", new OrderProtocolDecoder());

@@ -1729,3 +1729,13 @@ serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
 	+ maxGlobalWriteSize: 400M
 	+ maxWriteDelay: 4s
 - Check channel is writable
+
+#### KeepLive
+- Server
+	+ extends IdleStateHandler and drop connection in channelIdle()
+- Client
+	+ add IdleStateHandler
+	+ add Handler to implements userEventTriggered method to send the KeepLive message
+
+#### RuleBasedIpFilter
+- IpSubnetFilterRule: check the cidrPrefix

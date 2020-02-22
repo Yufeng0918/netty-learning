@@ -11,6 +11,8 @@ import io.netty.example.study.client.codec.OrderFrameDecoder;
 import io.netty.example.study.client.codec.OrderFrameEncoder;
 import io.netty.example.study.client.codec.OrderProtocalDecoder;
 import io.netty.example.study.client.codec.OrderProtocalEncoder;
+import io.netty.example.study.client.codec.dispatcher.ClientIdleCheckHandler;
+import io.netty.example.study.client.codec.dispatcher.KeepLiveHandler;
 import io.netty.example.study.common.RequestMessage;
 import io.netty.example.study.common.order.OrderOperation;
 import io.netty.example.study.util.IdUtil;
@@ -34,15 +36,21 @@ public class Client {
         bootstrap.channel(NioSocketChannel.class);
         bootstrap.group(workerGroup);
 
+        KeepLiveHandler keepLiveHandler = new KeepLiveHandler();
+
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
+
+                pipeline.addLast(new ClientIdleCheckHandler());
                 pipeline.addLast(new OrderFrameDecoder());
                 pipeline.addLast(new OrderFrameEncoder());
                 pipeline.addLast(new OrderProtocalDecoder());
                 pipeline.addLast(new OrderProtocalEncoder());
+                pipeline.addLast(keepLiveHandler);
                 pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+
             }
         });
 
