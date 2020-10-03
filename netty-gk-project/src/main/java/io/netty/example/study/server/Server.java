@@ -22,10 +22,16 @@ import io.netty.handler.ipfilter.IpSubnetFilterRule;
 import io.netty.handler.ipfilter.RuleBasedIpFilter;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.UnorderedThreadPoolEventExecutor;
 
+import javax.net.ssl.SSLException;
+import java.security.cert.CertificateException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -35,7 +41,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class Server {
 
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException, CertificateException, SSLException {
 
         NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("boss"));
         NioEventLoopGroup workerGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("worker"));
@@ -49,11 +55,22 @@ public class Server {
 
         LoggingHandler debugLogHandler = new LoggingHandler(LogLevel.DEBUG);
         LoggingHandler infoLogHandler = new LoggingHandler(LogLevel.INFO);
+
         MetricHandler metricHandler = new MetricHandler();
+
         UnorderedThreadPoolEventExecutor business = new UnorderedThreadPoolEventExecutor(10, new DefaultThreadFactory("buss"));
+
         GlobalTrafficShapingHandler trafficShapingHandler = new GlobalTrafficShapingHandler(new NioEventLoopGroup(), 100L * 1024L * 1024L, 100L * 1024L * 1024L);
+
         IpSubnetFilterRule ipSubnetFilterRule = new IpSubnetFilterRule("127.1.0.1", 16, IpFilterRuleType.REJECT);
+
         AuthHandler authHandler = new AuthHandler();
+
+
+//        SelfSignedCertificate selfSignedCertificate = new SelfSignedCertificate();
+//        System.out.println(selfSignedCertificate.certificate());
+//        SslContext sslContext = SslContextBuilder.forServer(selfSignedCertificate.certificate(), selfSignedCertificate.privateKey()).build();
+
 
         serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
             @Override
@@ -63,6 +80,10 @@ public class Server {
                 pipeline.addLast("ipFilter", new RuleBasedIpFilter(ipSubnetFilterRule));
                 pipeline.addLast("trafficSharper", trafficShapingHandler);
                 pipeline.addLast("idleCheck", new ServerIdleCheckHandler());
+
+//                SslHandler sslHandler = sslContext.newHandler(ch.alloc());
+//                pipeline.addLast("ssl", sslHandler);
+
                 pipeline.addLast("frameDecoder", new OrderFrameDecoder());
                 pipeline.addLast("frameEncoder", new OrderFrameEncoder());
                 pipeline.addLast("protocolDecoder", new OrderProtocolDecoder());

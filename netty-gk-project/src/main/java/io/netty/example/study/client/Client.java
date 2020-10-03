@@ -19,7 +19,10 @@ import io.netty.example.study.common.order.OrderOperation;
 import io.netty.example.study.util.IdUtil;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 
+import javax.net.ssl.SSLException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -29,7 +32,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class Client {
 
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException, SSLException {
 
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -39,12 +42,16 @@ public class Client {
 
         KeepLiveHandler keepLiveHandler = new KeepLiveHandler();
 
+//        SslContext sslContext = SslContextBuilder.forClient().build();
+
+
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
 
                 pipeline.addLast(new ClientIdleCheckHandler());
+//                pipeline.addLast(sslContext.newHandler(ch.alloc()));
                 pipeline.addLast(new OrderFrameDecoder());
                 pipeline.addLast(new OrderFrameEncoder());
                 pipeline.addLast(new OrderProtocalDecoder());

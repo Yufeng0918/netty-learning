@@ -37,6 +37,7 @@
         + spark, hadoop
         + rocket mq
         + grpc, apache dubbo
+
 #### Netty vs JDK NIO
 - Do more
     + netty support protocal in application layer
@@ -49,6 +50,7 @@
         + Netty's ByteBuff
         + Netty's FashThreadLocal
     + isolated network implementation
+
 #### Netty vs Apache Mina vs Grizzly
 - Mina
     + same developer
@@ -57,6 +59,7 @@
     + less developer
     + less document
     + slow development, small community
+
 #### History
 - 2004.06: netty2
 - 2008.10: netty3
@@ -76,12 +79,15 @@
 - AIO
     + JDK1.7
     + non-blocking and async
+
 #### Blocking vs Non Blocking
 - blocking: wait till data is ready
 - non blocking: return if data is not ready or buffer is full
+
 #### Sync vs Aysnc
 - sync: program read data by itself
 - async: os read data and program call once data is ready
+
 #### Netty Support
 - BIO: OIO
 - NIO
@@ -92,18 +98,21 @@
     + AIO is in-mature in linux
     + NIO/AIO performance almost same in linux
     + Not support
+
 #### Switch IO Model
 - NioEventLoopGroup vs OioEventLoopGroup
 - NioSocketChannel vs OioSocketChannel
 - Channel switch by Factory, Releection and Generic type
-```
+```java
 return channelFactory(new ReflectiveChannelFactory<C>(
   ObjectUtil.checkNotNull(channelClass, "channelClass")
 ));
 ```
 
 
+
 ## 2. Bootstrap/ChannelInitializer/ChannelHandler
+
 #### ServerBootstrap to startup EventLoop
 - initial boss and worker event loop
 - serverBoostrap
@@ -112,7 +121,7 @@ return channelFactory(new ReflectiveChannelFactory<C>(
     + initial childHandler
 - closeFuture return when only channel is close
 
-```
+```java
 // Create eventLoop
 EventLoopGroup bossGroup = new NioEventLoopGroup();
 EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -128,13 +137,17 @@ try{
     workerGroup.shutdownGracefully();
 }
 ```
+
+
+
 #### ClientBootstrap to startup EventLoop
+
 - initial worker event loop only
 - Boostrap
     + worker event loop
     + declare socket channel type
     + initial handler for worker
-```
+```java
 EventLoopGroup worker = new NioEventLoopGroup();
 try{
     Bootstrap bootstrap = new Bootstrap();
@@ -149,8 +162,11 @@ try{
 }
 ```
 
+
+
 #### ChannelInitializer to add handler into pipeline
-```
+
+```java
 public class TestServerChannelInitializer  extends ChannelInitializer<SocketChannel>{
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
@@ -161,8 +177,11 @@ public class TestServerChannelInitializer  extends ChannelInitializer<SocketChan
     }
 }
 ```
+
+
 #### ChannelHandler to execute the task
-```
+
+```java
 public class TestServerChannelHandler extends SimpleChannelInboundHandler<HttpObject>{
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
@@ -186,7 +205,10 @@ public class TestServerChannelHandler extends SimpleChannelInboundHandler<HttpOb
 ```
 ***
 
+
+
 ## 3. Channel Handler
+
 #### ChannelHandler life cycle
 + handlerAdded
 + channelRegistered
@@ -201,15 +223,16 @@ public class TestServerChannelHandler extends SimpleChannelInboundHandler<HttpOb
 ```
 ctx.channel().close();
 ```
+
 #### Channel Group
-```
+```java
 private static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 ```
+
 #### Logging Handler
-```
+```java
 bootstrap.group(boss, worker).channel(NioServerSocketChannel.class).handler(new LoggingHandler(LogLevel.DEBUG)).childHandler(new HeartBeatServerChannelInitializer());
 ```
-
 
 #### WebSocket
 - HTTP cons
@@ -228,7 +251,7 @@ bootstrap.group(boss, worker).channel(NioServerSocketChannel.class).handler(new 
     + ContinouationWebSocketFrame
 - WebSocketServerProtocolHandler declare the WebSocket URI: ws://localhost:8080/<context_path>
 
-```
+```java
 public class WebSocketChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
@@ -267,6 +290,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
     + self-define structure
     + XML/Json
     + RPC framework
+
 #### Protocal Buffers
 - define the data structure to generate source code
 - support java, python, c++, ruby, c#
@@ -283,7 +307,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
         + optional: may or may not set
         + repeated: nay number of times
 
-```
+```protobuf
 syntax = "proto3";
 package com.bp.netty.proto;
 option optimize_for = SPEED;
@@ -304,7 +328,7 @@ option java_multiple_files = true;
         + ProtobufDecoder accept the message class defaultInstance
     - Handler accept the type of messageType
 
-```
+```java
 //Initializer
 pipeline.addLast(new ProtobufVarint32FrameDecoder());
 pipeline.addLast(new ProtobufDecoder(PersonDataInfo.Person.getDefaultInstance()));
@@ -319,7 +343,7 @@ public class PersonTestServerHandler extends SimpleChannelInboundHandler<PersonD
         + header: message type enum, header is message type
         + type: data via "oneof", only one field is set one time
 
-```
+```protobuf
 message MsgData {
     enum MsgType{
         PERSON = 0;
@@ -357,7 +381,8 @@ message MsgData {
 - client
     - set transport and protocal, protocal above transport
     - call the remote server call
-````
+
+```protobuf
 // server
 TNonblockingServerSocket socket = new TNonblockingServerSocket(8899);
 THsHaServer.Args arg = new THsHaServer.Args(socket).minWorkerThreads(2).maxWorkerThreads(4);
@@ -375,11 +400,10 @@ server.serve();
 TTransport transport = new TFramedTransport(new TSocket("localhost", 8899), 600);
 TProtocol protocol = new TCompactProtocol(transport);
 PersonService.Client client = new PersonService.Client(protocol);
-
-````
+```
 - Architecture
 
-| Client  | Server  | 
+| Client  | Server  |
 |---|---|
 | Application Code | Application Code  |
 | Client  | Processor  |
@@ -403,6 +427,7 @@ PersonService.Client client = new PersonService.Client(protocol);
     + TThreadPoolServer: multi thread, blocking io, every request is thread
     + TNonblockingServer: multi thread, no-blocking io, based on TFramedTransport
     + THsHaServer: half-sync, half-async, based on TFramedTransport
+
 #### GRPC
 - Overview
     + base on protocol buff3
@@ -428,7 +453,8 @@ PersonService.Client client = new PersonService.Client(protocol);
         - request/stream response 
         - request stream/response
         - request stream/response stream
-````
+
+```
 service StudentService {
 
     rpc GetRealNameByUsername(MyRequest) returns (MyResponse) {}
@@ -449,7 +475,8 @@ message StudentResponse {
 message StudentResponseList { repeated StudentResponse studentResponse = 1; }
 message StreamRequest { string request_info = 1;}
 message StreamResponse { string response_info = 1;}
-````
+```
+
 - source code
     + server
     + request vs response
@@ -464,7 +491,8 @@ message StreamResponse { string response_info = 1;}
         - service implementation define the request callback, onNext, onError and onCompleted and return the request
         - client define the how response callback 
         - client send the request via request.onNext() on onCompleted()
-````
+
+```
 // server
 this.server = ServerBuilder.forPort(8899).addService(new StudentServiceImpl()).build().start();
 System.out.println("server start");
@@ -527,8 +555,6 @@ studentRequestStreamObserver.onNext(StudentRequest.newBuilder().setAge(30).build
 studentRequestStreamObserver.onCompleted();
 
 
-
-
 @Override
 public StreamObserver<StreamRequest> biTalk(StreamObserver<StreamResponse> streamResponseStreamObserver)  {
 
@@ -559,22 +585,23 @@ streamRequestStreamObserver.onNext(StreamRequest.newBuilder().setRequestInfo("10
 streamRequestStreamObserver.onNext(StreamRequest.newBuilder().setRequestInfo("20").build());
 streamRequestStreamObserver.onNext(StreamRequest.newBuilder().setRequestInfo("30").build());
 streamRequestStreamObserver.onCompleted();
-````
+```
 
 - shutdown hook
     + shutdown normally or by event
     + shutdown hook is initialized but not started
     + shutdown hook may have multiple thread and not time consuming task
-    + event to trigger shutdown sequence   
-    
-    
-    
+    + event to trigger shutdown sequence
+***
+
+​        
 
 ## 5. IO
 #### Category
 - input/output
 - bytes[inputstream|outputstream]/char[reader|writer]
 - node stream/filter stream
+
 #### Decorator
 - extends object
 - extends more responsibility
@@ -583,6 +610,7 @@ streamRequestStreamObserver.onCompleted();
     + concrete component[file inputstream]: core function
     + decorator[filter inputstream]: have a component reference and decorator interface [super class]
     + concrete decorator[buffered inputstream]: add on function
+
 #### Buffer
 - capacity: positive and never change
 - limit: index of first element is not for read/write, less than capacity
@@ -593,6 +621,7 @@ streamRequestStreamObserver.onCompleted();
 - rewind(): set position = 0
 - slice(): new sliced buffer position, limit, capacity is independent but with common data         
 - ReadonlyBuffer: original buffer data change relect on ReadonlyBuffer
+
 #### DirectBuffer
 - directBuffer vs HeapBuffer
     + heapbuffer: copy the data of java memory to system memory, system memory's data deal with IO
@@ -606,15 +635,18 @@ streamRequestStreamObserver.onCompleted();
     - GC may happen during copying
     - copying between buffers is fast, deal with I/O is slow
     - HeapBuffer copy to I/O will allocate temp DirectBuff
-````
+
+```
 RandomAccessFile randomAccessFile = new RandomAccessFile("NioTest09.txt", "rw");
 FileChannel fileChannel = randomAccessFile.getChannel();
 MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
-````    
+```
+
 - Scattering && Gattering
     - scattering: socket read the data into buffer array
     - gattering: socket write buffer array data out
-````
+
+```java
 ByteBuffer[] buffers = new ByteBuffer[3];
 buffers[0] = ByteBuffer.allocate(2);
 buffers[1] = ByteBuffer.allocate(3);
@@ -623,9 +655,12 @@ buffers[2] = ByteBuffer.allocate(4);
 SocketChannel socketChannel = serverSocketChannel.accept();
 long r = socketChannel.read(buffers);
 long r = socketChannel.write(buffers);
+```
 
-```    
+
+
 #### Selector    
+
 - A multiplexor of SelectableChannel objects, created System's default selector provider via open()  to create a new selector. open till close() invoke.
 - SelectableChannel register with a selector by SelectionKey
 - Selection Operation
@@ -649,6 +684,7 @@ long r = socketChannel.write(buffers);
 - SelectionKey
     - interest set determines which operation categories will be tested for readiness the next time one of the selector's selection methods is invoked.         
     - ready set identifies the operation categories for which the key's channel has been detected to be ready by the key's selector.
+
 ```
 while (true) {
     selector.select();
@@ -684,6 +720,7 @@ while (true) {
     }
 }
 ```
+***
 
 
 ## 6. Charset
@@ -926,7 +963,7 @@ ServerBootstrap: void channelRead(ChannelHandlerContext ctx, Object msg) {
 - Time-consuming task  should not in Handlers
     + JDK: get ExecutorServices in handlers
     + Netty: pipeline pass EventExecutor
-   
+
 
 
 ## 9. Reactor
@@ -1106,9 +1143,9 @@ for (;;) {
 - Outbound messages      
     + outbound message created by application
     + write should release the buff
+
  
- 
- 
+
 ## 13. Handlers
 #### Overview
 - ChannelInboundHandler and ChannelOutboundHandler
@@ -1145,7 +1182,7 @@ switch (state()) {
    default:
      throw new Error("Shouldn't reach here.");
 }
-```   
+```
 #### LengthFieldBasedFrameDecoder
 - splits ByteBuf dynamically by value of length field. Header with integer represent the length of message body
 - proprietary client-server protocals.
@@ -1709,7 +1746,7 @@ serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
 - flushConsolidationHandler
 	+ pipeline.addLast("flushEnhance", new FlushConsolidationHandler(5, true));
 	+ incease delay, increase througput
- 
+
 #### Tranffic Sharping
 - checkInterval to adjust, writeLimit/readLimit set to 0 to turn off
 - GlobalTrafficShapingHandler: shared
@@ -1737,11 +1774,11 @@ serverBootstrap.childHandler(new ChannelInitializer<NioSocketChannel>() {
 	+ add IdleStateHandler
 	+ add Handler to implements userEventTriggered method to send the KeepLive message
 
-#### RuleBasedIpFilter
-- IpSubnetFilterRule: check the cidrPrefix
-
-#### AuthHandler
-- auth the operation and remove it self after done
+#### Security
+- RuleBasedIpFilter
+	- IpSubnetFilterRule: check the cidrPrefix
+- AuthHandler
+	- auth the operation and remove it self after done
 
 ```
 protected void channelRead0(ChannelHandlerContext ctx, RequestMessage msg) throws Exception {
@@ -1770,3 +1807,11 @@ protected void channelRead0(ChannelHandlerContext ctx, RequestMessage msg) throw
 }
 
 ```
+
+- SSL/TLS
+	- provide encryption in transport layer
+	- client generate random number sent to server
+	- server generate random number sent back to client
+	- client generate symetric key based on random number and encrypt by server public key
+	- client send public_key[symetric_key] to sever
+	- server decrypt by private key to get symetric key

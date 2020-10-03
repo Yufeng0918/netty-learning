@@ -1,3 +1,0 @@
-RandomAccessFile randomAccessFile = new RandomAccessFile("NioTest10", "rw");
-FileChannel fileChannel = randomAccessFile.getChannel();
-FileLock fileLock = fileChannel.lock(3, 6, true);
